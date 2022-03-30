@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package com.example.shoppingcart;
+
+import "akkaserverless/annotations.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+option java_outer_classname = "ShoppingCartApi";
+
+message AddLineItem {
+  string cart_id = 1 [(akkaserverless.field).entity_key = true];
+  string product_id = 2;
+  string name = 3;
+  int32 quantity = 4;
+}
+
+message GetShoppingCart {
+  string cart_id = 1 [(akkaserverless.field).entity_key = true];
+}
+
+message CheckOutShoppingCart {
+  string cart_id = 1 [(akkaserverless.field).entity_key = true];
+}
+
+message Cart {
+  repeated LineItem items = 1;
+}
+
+message LineItem {
+  string product_id = 1;
+  string name = 2;
+  int32 quantity = 3;
+}
+
+service ShoppingCartService {
+
+  option (akkaserverless.codegen) = {
+      event_sourced_entity: {
+        name: "com.example.shoppingcart.domain.ShoppingCart"
+        entity_type: "shopping-cart"
+        state: "com.example.shoppingcart.domain.Cart"
+        events: [
+          "com.example.shoppingcart.domain.ItemAdded",
+          "com.example.shoppingcart.domain.CheckedOut"]
+      }
+  };
+
+  rpc AddItem (AddLineItem) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/cart/{cart_id}/items/add"
+      body: "*"
+    };
+  }
+
+  rpc CheckOutCart (CheckOutShoppingCart) returns (google.protobuf.Empty) {
+    option (google.api.http).post = "/cart/{cart_id}/checkout";
+  }
+
+  rpc GetCart (GetShoppingCart) returns (Cart) {
+    option (google.api.http) = {
+      get: "/carts/{cart_id}"
+      additional_bindings: {
+          get: "/carts/{cart_id}/items"
+          response_body: "items"
+      } };
+  }
+}

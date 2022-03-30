@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package com.example.shoppingcart.domain;
+
+option java_outer_classname = "ShoppingCartDomain";
+
+message Cart {
+  repeated LineItem items = 1;
+  bool checked_out = 2;
+}
+
+message LineItem {
+  string productId = 1;
+  string name = 2;
+  int32 quantity = 3;
+}
+
+
+// The item added event.
+message ItemAdded {
+  LineItem item = 1;
+}
+
+// The checked out event.
+message CheckedOut {
+  int64 checked_out_timestamp = 1;
+}
