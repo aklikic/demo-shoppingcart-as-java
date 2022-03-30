@@ -1,0 +1,141 @@
+<templateSet group="as-es-java-shoppingcart">
+  <template name="aheader" value="syntax = &quot;proto3&quot;;&#10;&#10;package com.example.shoppingcart;&#10;&#10;import &quot;akkaserverless/annotations.proto&quot;;&#10;import &quot;google/api/annotations.proto&quot;;&#10;import &quot;google/protobuf/empty.proto&quot;;&#10;&#10;option java_outer_classname = &quot;ShoppingCartApi&quot;;" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="PROTO" value="true" />
+      <option name="PROTOTEXT" value="true" />
+    </context>
+  </template>
+  <template name="acmd" value="message AddLineItem {&#10;  string cart_id = 1 [(akkaserverless.field).entity_key = true];&#10;  string product_id = 2;&#10;  string name = 3;&#10;  int32 quantity = 4;&#10;}&#10;&#10;message GetShoppingCart {&#10;  string cart_id = 1 [(akkaserverless.field).entity_key = true];&#10;}&#10;&#10;message CheckOutShoppingCart {&#10;  string cart_id = 1 [(akkaserverless.field).entity_key = true];&#10;}" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="PROTO" value="true" />
+      <option name="PROTOTEXT" value="true" />
+    </context>
+  </template>
+  <template name="astate" value="message Cart {&#10;  repeated LineItem items = 1;&#10;}&#10;&#10;message LineItem {&#10;  string product_id = 1;&#10;  string name = 2;&#10;  int32 quantity = 3;&#10;}" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="PROTO" value="true" />
+      <option name="PROTOTEXT" value="true" />
+    </context>
+  </template>
+  <template name="asrv" value="service ShoppingCartService { &#10;&#10;}" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="PROTO" value="true" />
+      <option name="PROTOTEXT" value="true" />
+    </context>
+  </template>
+  <template name="afunc" value="  rpc AddItem (AddLineItem) returns (google.protobuf.Empty) {&#10;    option (google.api.http) = {&#10;      post: &quot;/cart/{cart_id}/items/add&quot;&#10;      body: &quot;*&quot;&#10;    };&#10;  }&#10;&#10;  rpc CheckOutCart (CheckOutShoppingCart) returns (google.protobuf.Empty) {&#10;    option (google.api.http).post = &quot;/cart/{cart_id}/checkout&quot;;&#10;  }&#10;&#10;  rpc GetCart (GetShoppingCart) returns (Cart) {&#10;    option (google.api.http) = {&#10;      get: &quot;/carts/{cart_id}&quot;&#10;      additional_bindings: {&#10;          get: &quot;/carts/{cart_id}/items&quot;&#10;          response_body: &quot;items&quot;&#10;      } };&#10;  }" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="PROTO" value="true" />
+      <option name="PROTOTEXT" value="true" />
+    </context>
+  </template>
+  <template name="acodegen" value="option (akkaserverless.codegen) = {&#10;      event_sourced_entity: {&#10;        name: &quot;com.example.shoppingcart.domain.ShoppingCart&quot;&#10;        entity_type: &quot;shopping-cart&quot;&#10;        state: &quot;com.example.shoppingcart.domain.Cart&quot;&#10;        events: [&#10;          &quot;com.example.shoppingcart.domain.ItemAdded&quot;,&#10;          &quot;com.example.shoppingcart.domain.CheckedOut&quot;]&#10;      }&#10;  };" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="PROTO" value="true" />
+      <option name="PROTOTEXT" value="true" />
+    </context>
+  </template>
+  <template name="dheader" value="syntax = &quot;proto3&quot;;&#10;&#10;package com.example.shoppingcart.domain;&#10;&#10;option java_outer_classname = &quot;ShoppingCartDomain&quot;;&#10;" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="PROTO" value="true" />
+      <option name="PROTOTEXT" value="true" />
+    </context>
+  </template>
+  <template name="dstate" value="message Cart {&#10;  repeated LineItem items = 1;&#10;  bool checked_out = 2;&#10;}&#10;&#10;message LineItem {&#10;  string productId = 1;&#10;  string name = 2;&#10;  int32 quantity = 3;&#10;}" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="PROTO" value="true" />
+      <option name="PROTOTEXT" value="true" />
+    </context>
+  </template>
+  <template name="devts" value="// The item added event.&#10;message ItemAdded {&#10;  LineItem item = 1;&#10;}&#10;&#10;// The checked out event.&#10;message CheckedOut {&#10;  int64 checked_out_timestamp = 1;&#10;}" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="PROTO" value="true" />
+      <option name="PROTOTEXT" value="true" />
+    </context>
+  </template>
+  <template name="eestate" value="return ShoppingCartDomain.Cart.getDefaultInstance();" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_CODE" value="true" />
+    </context>
+  </template>
+  <template name="ecadd" value="if (addLineItem.getQuantity() &lt;= 0) {&#10;    return effects().error(&quot;Quantity for item &quot; + addLineItem.getProductId() + &quot; must be greater than zero.&quot;);&#10;}&#10;if(currentState.getCheckedOut()) {&#10;    return effects().error(&quot;Cart already checked out.&quot;);&#10;}&#10;&#10;ShoppingCartDomain.ItemAdded event =&#10;        ShoppingCartDomain.ItemAdded.newBuilder()&#10;                .setItem(&#10;                        ShoppingCartDomain.LineItem.newBuilder()&#10;                                .setProductId(addLineItem.getProductId())&#10;                                .setName(addLineItem.getName())&#10;                                .setQuantity(addLineItem.getQuantity())&#10;                                .build())&#10;                .build();&#10;&#10;return effects()&#10;        .emitEvent(event)&#10;        .thenReply(newState -&gt; Empty.getDefaultInstance());" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_CODE" value="true" />
+    </context>
+  </template>
+  <template name="ecget" value="@Override&#10;public Effect&lt;ShoppingCartApi.Cart&gt; getCart(ShoppingCartDomain.Cart currentState, ShoppingCartApi.GetShoppingCart getShoppingCart) {&#10;    List&lt;ShoppingCartApi.LineItem&gt; apiItems =&#10;            currentState.getItemsList().stream()&#10;                    .map(this::convert)&#10;                    .sorted(Comparator.comparing(ShoppingCartApi.LineItem::getProductId))&#10;                    .collect(Collectors.toList());&#10;    ShoppingCartApi.Cart apiCart =&#10;            ShoppingCartApi.Cart.newBuilder().addAllItems(apiItems).build(); // &lt;2&gt;&#10;    return effects().reply(apiCart);&#10;}&#10;&#10;private ShoppingCartApi.LineItem convert(ShoppingCartDomain.LineItem item) {&#10;    return ShoppingCartApi.LineItem.newBuilder()&#10;            .setProductId(item.getProductId())&#10;            .setName(item.getName())&#10;            .setQuantity(item.getQuantity())&#10;            .build();&#10;}" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_CODE" value="true" />
+    </context>
+  </template>
+  <template name="eeadded" value="ShoppingCartDomain.LineItem item = itemAdded.getItem();&#10;return currentState.toBuilder().addItems(item).build();" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_CODE" value="true" />
+    </context>
+  </template>
+  <template name="ut" value="@Test&#10;public void addItemTest() {&#10;&#10;    ShoppingCartTestKit testKit = ShoppingCartTestKit.of(ShoppingCart::new); // &lt;1&gt;&#10;&#10;    ShoppingCartApi.AddLineItem apples = ShoppingCartApi.AddLineItem.newBuilder().setProductId(&quot;idA&quot;)&#10;            .setName(&quot;apples&quot;).setQuantity(1).build();&#10;    EventSourcedResult&lt;Empty&gt; addingApplesResult = testKit.addItem(apples); // &lt;2&gt;&#10;&#10;    ShoppingCartApi.AddLineItem bananas = ShoppingCartApi.AddLineItem.newBuilder().setProductId(&quot;idB&quot;)&#10;            .setName(&quot;bananas&quot;).setQuantity(2).build();&#10;    testKit.addItem(bananas); // &lt;3&gt;&#10;&#10;    assertEquals(1, addingApplesResult.getAllEvents().size()); // &lt;4&gt;&#10;    assertEquals(2, testKit.getAllEvents().size()); // &lt;5&gt;&#10;&#10;    ShoppingCartDomain.ItemAdded addedApples = addingApplesResult.getNextEventOfType(ShoppingCartDomain.ItemAdded.class); // &lt;6&gt;&#10;    assertEquals(&quot;apples&quot;, addedApples.getItem().getName());&#10;    assertThrows(java.util.NoSuchElementException.class, () -&gt;  addingApplesResult.getNextEventOfType(ShoppingCartDomain.ItemAdded.class)); // &lt;7&gt;&#10;    assertEquals(Empty.getDefaultInstance(), addingApplesResult.getReply()); // &lt;8&gt;&#10;&#10;    ShoppingCartDomain.LineItem expectedApples = ShoppingCartDomain.LineItem.newBuilder().setProductId(&quot;idA&quot;)&#10;            .setName(&quot;apples&quot;).setQuantity(1).build();&#10;    ShoppingCartDomain.LineItem expectedBananas = ShoppingCartDomain.LineItem.newBuilder().setProductId(&quot;idB&quot;)&#10;            .setName(&quot;bananas&quot;).setQuantity(2).build();&#10;    ShoppingCartDomain.Cart expectedState = ShoppingCartDomain.Cart.newBuilder()&#10;            .addItems(expectedApples)&#10;            .addItems(expectedBananas)&#10;            .build();&#10;    assertEquals(expectedState, testKit.getState()); // &lt;9&gt;&#10;}" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_CODE" value="true" />
+    </context>
+  </template>
+  <template name="it" value="&#10;void addItem(String cartId, String productId, String name, int quantity) throws Exception {&#10;    client&#10;            .addItem(&#10;                    ShoppingCartApi.AddLineItem.newBuilder()&#10;                            .setCartId(cartId)&#10;                            .setProductId(productId)&#10;                            .setName(name)&#10;                            .setQuantity(quantity)&#10;                            .build())&#10;            .toCompletableFuture()&#10;            .get();&#10;}&#10;ShoppingCartApi.LineItem item(String productId, String name, int quantity) {&#10;    return ShoppingCartApi.LineItem.newBuilder()&#10;            .setProductId(productId)&#10;            .setName(name)&#10;            .setQuantity(quantity)&#10;            .build();&#10;}&#10;&#10;ShoppingCartApi.Cart getCart(String cartId) throws Exception {&#10;    return client&#10;            .getCart(ShoppingCartApi.GetShoppingCart.newBuilder().setCartId(cartId).build())&#10;            .toCompletableFuture()&#10;            .get();&#10;}&#10;&#10;@Test&#10;public void addItemsToCart() throws Exception {&#10;    addItem(&quot;cart2&quot;, &quot;a&quot;, &quot;Apple&quot;, 1);&#10;    addItem(&quot;cart2&quot;, &quot;b&quot;, &quot;Banana&quot;, 2);&#10;    addItem(&quot;cart2&quot;, &quot;c&quot;, &quot;Cantaloupe&quot;, 3);&#10;    ShoppingCartApi.Cart cart = getCart(&quot;cart2&quot;);&#10;    org.junit.Assert.assertEquals(&quot;shopping cart should have 3 items&quot;, 3, cart.getItemsCount());&#10;    org.junit.Assert.assertEquals(&#10;            &quot;shopping cart should have expected items&quot;,&#10;            cart.getItemsList(),&#10;            java.util.List.of(item(&quot;a&quot;, &quot;Apple&quot;, 1), item(&quot;b&quot;, &quot;Banana&quot;, 2), item(&quot;c&quot;, &quot;Cantaloupe&quot;, 3))&#10;    );&#10;}" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_CODE" value="true" />
+    </context>
+  </template>
+  <template name="eall" value="@Override&#10;public ShoppingCartDomain.Cart emptyState() {&#10;    return ShoppingCartDomain.Cart.getDefaultInstance();&#10;}&#10;&#10;@Override&#10;public Effect&lt;Empty&gt; addItem(ShoppingCartDomain.Cart currentState, ShoppingCartApi.AddLineItem addLineItem) {&#10;    if (addLineItem.getQuantity() &lt;= 0) {&#10;        return effects().error(&quot;Quantity for item &quot; + addLineItem.getProductId() + &quot; must be greater than zero.&quot;);&#10;    }&#10;    if(currentState.getCheckedOut()) {&#10;        return effects().error(&quot;Cart already checked out.&quot;);&#10;    }&#10;&#10;    ShoppingCartDomain.ItemAdded event =&#10;            ShoppingCartDomain.ItemAdded.newBuilder()&#10;                    .setItem(&#10;                            ShoppingCartDomain.LineItem.newBuilder()&#10;                                    .setProductId(addLineItem.getProductId())&#10;                                    .setName(addLineItem.getName())&#10;                                    .setQuantity(addLineItem.getQuantity())&#10;                                    .build())&#10;                    .build();&#10;&#10;    return effects()&#10;            .emitEvent(event)&#10;            .thenReply(newState -&gt; Empty.getDefaultInstance());&#10;}&#10;&#10;@Override&#10;public Effect&lt;Empty&gt; checkOutCart(ShoppingCartDomain.Cart currentState, ShoppingCartApi.CheckOutShoppingCart checkOutShoppingCart) {&#10;    if(currentState.getCheckedOut()) {&#10;        return effects().reply(Empty.getDefaultInstance());&#10;&#10;    }else if(currentState.getItemsList().isEmpty()){&#10;        return effects().error(&quot;Cart empty.&quot;);&#10;&#10;    }else{&#10;        ShoppingCartDomain.CheckedOut event =&#10;                ShoppingCartDomain.CheckedOut.newBuilder()&#10;                        .setCheckedOutTimestamp(System.currentTimeMillis())&#10;                        .build();&#10;&#10;        return effects()&#10;                .emitEvent(event)&#10;                .thenReply(newState -&gt; Empty.getDefaultInstance());&#10;    }&#10;}&#10;&#10;&#10;@Override&#10;public Effect&lt;ShoppingCartApi.Cart&gt; getCart(ShoppingCartDomain.Cart currentState, ShoppingCartApi.GetShoppingCart getShoppingCart) {&#10;    java.util.List&lt;ShoppingCartApi.LineItem&gt; apiItems =&#10;            currentState.getItemsList().stream()&#10;                    .map(this::convert)&#10;                    .sorted(java.util.Comparator.comparing(ShoppingCartApi.LineItem::getProductId))&#10;                    .collect(java.util.stream.Collectors.toList());&#10;    ShoppingCartApi.Cart apiCart =&#10;            ShoppingCartApi.Cart.newBuilder().addAllItems(apiItems).build(); // &lt;2&gt;&#10;    return effects().reply(apiCart);&#10;}&#10;&#10;private ShoppingCartApi.LineItem convert(ShoppingCartDomain.LineItem item) {&#10;    return ShoppingCartApi.LineItem.newBuilder()&#10;            .setProductId(item.getProductId())&#10;            .setName(item.getName())&#10;            .setQuantity(item.getQuantity())&#10;            .build();&#10;}&#10;&#10;@Override&#10;public ShoppingCartDomain.Cart itemAdded(ShoppingCartDomain.Cart currentState, ShoppingCartDomain.ItemAdded itemAdded) {&#10;    ShoppingCartDomain.LineItem item = itemAdded.getItem();&#10;    return currentState.toBuilder().addItems(item).build();&#10;}&#10;&#10;@Override&#10;public ShoppingCartDomain.Cart checkedOut(ShoppingCartDomain.Cart currentState, ShoppingCartDomain.CheckedOut checkedOut) {&#10;    return currentState.toBuilder().setCheckedOut(true).build();&#10;}" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_CODE" value="true" />
+    </context>
+  </template>
+  <template name="eccheckout" value="if(currentState.getCheckedOut()) {&#10;    return effects().reply(Empty.getDefaultInstance());&#10;&#10;}else if(currentState.getItemsList().isEmpty()){&#10;    return effects().error(&quot;Cart empty.&quot;);&#10;&#10;}else{&#10;    ShoppingCartDomain.CheckedOut event =&#10;            ShoppingCartDomain.CheckedOut.newBuilder()&#10;                    .setCheckedOutTimestamp(System.currentTimeMillis())&#10;                    .build();&#10;&#10;    return effects()&#10;            .emitEvent(event)&#10;            .thenReply(newState -&gt; Empty.getDefaultInstance());&#10;}" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_CODE" value="true" />
+    </context>
+  </template>
+  <template name="eecheckouted" value="return currentState.toBuilder().setCheckedOut(true).build();" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_CODE" value="true" />
+    </context>
+  </template>
+  <template name="maction" value=", ShoppingCartToTopicAction::new" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_CODE" value="true" />
+    </context>
+  </template>
+  <template name="theader" value="syntax = &quot;proto3&quot;;&#10;&#10;package com.example.shoppingcart;&#10;&#10;import &quot;akkaserverless/annotations.proto&quot;;&#10;import &quot;google/api/annotations.proto&quot;;&#10;import &quot;google/protobuf/empty.proto&quot;;&#10;import &quot;google/protobuf/any.proto&quot;;&#10;&#10;import &quot;com/example/shoppingcart/domain/shoppingcart_domain.proto&quot;;&#10;&#10;option java_outer_classname = &quot;ShoppingCartTopicApi&quot;;" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="PROTO" value="true" />
+      <option name="PROTOTEXT" value="true" />
+    </context>
+  </template>
+  <template name="tevts" value="message CheckedOutTopicEvent{&#10;  string cart_id = 1;&#10;  int64 checked_out_timestamp = 2;&#10;}" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="PROTO" value="true" />
+      <option name="PROTOTEXT" value="true" />
+    </context>
+  </template>
+  <template name="tsrv" value="service ShoppingCartToTopic {&#10;&#10;}" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="PROTO" value="true" />
+      <option name="PROTOTEXT" value="true" />
+    </context>
+  </template>
+  <template name="tfunc" value="rpc CheckedOut (com.example.shoppingcart.domain.CheckedOut) returns (CheckedOutTopicEvent) {&#10;  option (akkaserverless.method).eventing.in = {&#10;    event_sourced_entity: &quot;shopping-cart&quot;&#10;  };&#10;  option (akkaserverless.method).eventing.out = {&#10;    topic:  &quot;shopping-cart-topic&quot;&#10;  };&#10;}&#10;rpc Ignore(google.protobuf.Any) returns (google.protobuf.Empty) {&#10;  option (akkaserverless.method).eventing.in = {&#10;    event_sourced_entity: &quot;shopping-cart&quot;&#10;  };&#10;}" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="PROTO" value="true" />
+      <option name="PROTOTEXT" value="true" />
+    </context>
+  </template>
+  <template name="tcodegen" value="option (akkaserverless.codegen) = {&#10;  action: {}&#10;};" description="" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="PROTO" value="true" />
+      <option name="PROTOTEXT" value="true" />
+    </context>
+  </template>
+  <template name="hall" value="@Override&#10;public Effect&lt;ShoppingCartTopicApi.CheckedOutTopicEvent&gt; checkedOut(ShoppingCartDomain.CheckedOut checkedOut) {&#10;    ShoppingCartTopicApi.CheckedOutTopicEvent topicEvent = ShoppingCartTopicApi.CheckedOutTopicEvent&#10;            .newBuilder()&#10;            .setCartId(actionContext().eventSubject().get())&#10;            .setCheckedOutTimestamp(checkedOut.getCheckedOutTimestamp())&#10;            .build();&#10;    return effects().reply(topicEvent);&#10;}&#10;&#10;@Override&#10;public Effect&lt;Empty&gt; ignore(Any any) {&#10;    return effects().reply(Empty.getDefaultInstance());&#10;}" description="" toReformat="false" toShortenFQNames="true" useStaticImport="true">
+    <context>
+      <option name="JAVA_CODE" value="true" />
+    </context>
+  </template>
+</templateSet>
